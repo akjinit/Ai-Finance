@@ -8,7 +8,10 @@ const isProtectedRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth,req)=>{
     const {userId} = await auth();
 
-    if(!userId )
+    if(!userId && isProtectedRoute(req)){
+      const {redirectToSignIn} = await auth();
+      return redirectToSignIn();
+    }
 });
 
 export const config = {
