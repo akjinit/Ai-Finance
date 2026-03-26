@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
       <html
         lang="en" className=""
       >
-        <body className={`${inter.className} bg-zinc-800`}>
+        <body className={`${inter.className} bg-white`}>
           {/* header */}
           <Header />
           <main className="min-h-screen">

@@ -12,7 +12,7 @@ import { LayoutDashboard, PenBox } from 'lucide-react'
 const Header = () => {
     return (
         <div className="fixed top-0">
-            <nav className="flex items-center justify-between w-screen mx-auto px-4 py-3 ">
+            <nav className="flex items-center justify-between w-screen mx-auto px-20 py-3 ">
                 <Link href='/'>
                     <Image
                         src={"/wealth-logo.png"}
@@ -32,13 +32,17 @@ const Header = () => {
                         </Link>
 
                         <Link href="/transaction/create" className='text-gray-600  items-center gap-2'>
-                            <Button variant='outline'>
+                            <Button >
                                 <PenBox size={18} />
                                 <span className='hidden md:inline'>Add Transaction</span>
                             </Button>
                         </Link>
 
-                        <UserButton />
+                        <UserButton appearance={{
+                            elemens : {
+                                avatarBox : "w-10 h-10"
+                            }
+                        }}/>
                     </Show>
 
                     <Show when="signed-out">
