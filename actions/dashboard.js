@@ -51,7 +51,7 @@ export async function createAccount(data) {
         });
 
         revalidatePath("/dashboard"); //refetch the apis on this page and rerender
-        return { success: true, data: account };
+        return { success: true, data: JSON.parse(JSON.stringify(account)) };
 
     } catch (err) {
         console.log(err);
