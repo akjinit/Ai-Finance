@@ -1,15 +1,13 @@
-
-'use client'
-
-import { SignInButton } from '@clerk/nextjs'
-import { Show, SignUpButton, UserButton } from '@clerk/react'
+import { SignInButton, SignUpButton, UserButton, Show } from '@clerk/nextjs'
 import Link from 'next/link'
 import Image from 'next/image'
 import React from 'react'
 import { Button } from './ui/button'
 import { LayoutDashboard, PenBox } from 'lucide-react'
+import { checkUser } from '@/lib/checkUser'
 
-const Header = () => {
+const Header = async () => {
+    const user = await checkUser();
     return (
         <div className="fixed top-0">
             <nav className="flex items-center justify-between w-screen mx-auto px-20 py-3 ">
@@ -23,7 +21,7 @@ const Header = () => {
                 </Link>
 
                 <div className='flex items-center gap-3 mr-4'>
-                    <Show when="signed-in" className="">
+                    <Show when="signed-in">
                         <Link href="/dashboard" className='text-gray-600 hover:text-blue-600 items-center gap-2'>
                             <Button variant='outline'>
                                 <LayoutDashboard size={18} />
@@ -39,10 +37,10 @@ const Header = () => {
                         </Link>
 
                         <UserButton appearance={{
-                            elemens : {
-                                avatarBox : "w-10 h-10"
+                            elements: {
+                                avatarBox: "w-10 h-10"
                             }
-                        }}/>
+                        }} />
                     </Show>
 
                     <Show when="signed-out">
