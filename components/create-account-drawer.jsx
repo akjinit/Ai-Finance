@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from "./ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { accountSchema } from "@/app/lib/schema";
@@ -27,6 +27,7 @@ import { Switch } from "./ui/switch";
 import useFetch from "@/app/hooks/use-fetch";
 import { createAccount } from "@/actions/dashboard";
 import { Loader, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const CreateAccountDrawer = ({ children }) => {
     const [open, setOpen] = useState(false);
@@ -40,10 +41,24 @@ const CreateAccountDrawer = ({ children }) => {
             isDefault: false,
         }
     })
-    const { data: newAccount, error, fn: createAccountFunction, loading: createAccountLoading } = useFetch(createAccount)
+    const {
+        data: newAccount,
+        error,
+        fn: createAccountFunction,
+        loading: createAccountLoading
+    } = useFetch(createAccount)
+
+    useEffect(() => {
+        if (newAccount) {
+            toast.success("Account created successfully")
+            reset();
+            setOpen(false);
+            console.log(newAccount);
+        }
+    }, [newAccount])
     const onSubmit = async (data) => {
-        const res  = await createAccount(data);
-        console.log(res)
+        console.log(data);
+        await createAccountFunction(data);
     }
 
     return (
