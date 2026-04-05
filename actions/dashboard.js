@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Account } from "@/models/Account";
 import { User } from "@/models/User";
 import { revalidatePath } from "next/cache";
+import { Transaction } from "@/models/Transaction";
 
 export async function createAccount(data) {
     try {
@@ -57,4 +58,41 @@ export async function createAccount(data) {
         console.log(err);
         throw err;
     }
+}
+
+
+export async function getUserAccounts() {
+    const { userId } = await auth();
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const user = await User.findOne({
+        clerkUserId: userId,
+    });
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const accounts = await Account.find({
+        userId: user.id,
+    }).sort({ createdAt: -1 });
+
+    const accountsWithTransactions = await Promise.all(
+        accounts.map(async (account) => {
+            const transactions = await Transaction.find({
+                _id: account._id,
+            })
+                .sort({ createdAt: -1 })
+                .limit(5);
+
+            return {
+                ...account.toObject(),
+                transactions,
+            };
+        })
+    );
+    console.log("Accounts with transactions:", accountsWithTransactions); // Debugging line to check the accounts with transactions
+    return accountsWithTransactions;
 }
