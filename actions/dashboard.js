@@ -49,6 +49,7 @@ export async function createAccount(data) {
             balance: balanceFloat,
             userId: user.id,
             isDefault: shouldBeDefault,
+            transactions: [],
         });
 
         revalidatePath("/dashboard"); //refetch the apis on this page and rerender
@@ -79,20 +80,5 @@ export async function getUserAccounts() {
         userId: user.id,
     }).sort({ createdAt: -1 });
 
-    const accountsWithTransactions = await Promise.all(
-        accounts.map(async (account) => {
-            const transactions = await Transaction.find({
-                _id: account._id,
-            })
-                .sort({ createdAt: -1 })
-                .limit(5);
-
-            return {
-                ...(JSON.parse(JSON.stringify(account))),
-                transactions,
-            };
-        })
-    );
-    console.log("Accounts with transactions:", accountsWithTransactions); // Debugging line to check the accounts with transactions
-    return accountsWithTransactions;
+    return JSON.parse(JSON.stringify(accounts));
 }

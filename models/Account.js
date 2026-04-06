@@ -7,8 +7,9 @@ const AccountSchema = new Schema(
     name: { type: String, required: true },
     isDefault: { type: Boolean, default: false },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }],
   },
-  { timestamps: true }
+  { timestamps: true, strictPopulate: false }
 );
 
 export const Account = mongoose.models.Account || mongoose.model("Account", AccountSchema);

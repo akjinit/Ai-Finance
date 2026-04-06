@@ -41,6 +41,11 @@ const AccountCard = ({ account }) => {
         }
     }, [updateDefaultAccountStatus]);
 
+    useEffect(() => {
+        if (error) {
+            toast.error(error.message || "Something went wrong while updating default account");
+        }
+    }, [error]);
 
     const { name, balance, type, _id, isDefault } = account;
     return (

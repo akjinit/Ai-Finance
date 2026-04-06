@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
         <body className={`${inter.className} bg-white`}>
           {/* header */}
           <Header />
-          <main className="min-h-screen">
+          <main className="min-h-screen mt-40 mx-20">
             {children}
           </main>
           <Toaster richColors></Toaster>
