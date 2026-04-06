@@ -1,8 +1,9 @@
+"use server";
+
 import { Account } from "@/models/Account";
 import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { toast } from "sonner";
 
 export async function updateDefaultAccount(accountId) {
     try {
@@ -24,11 +25,11 @@ export async function updateDefaultAccount(accountId) {
             { $set: { isDefault: false } }
         );
         await Account.findByIdAndUpdate(accountId, { isDefault: true });
-        toast.success("Default account updated successfully!");
 
         revalidatePath("/dashboard");
+        return { success: true };
 
     } catch (err) {
-        toast.error("Failed to update default account. Please try again.");
+        return { success: false, message: err.message };
     }
 }
