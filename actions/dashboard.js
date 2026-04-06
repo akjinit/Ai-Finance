@@ -88,7 +88,7 @@ export async function getUserAccounts() {
                 .limit(5);
 
             return {
-                ...account.toObject(),
+                ...(JSON.parse(JSON.stringify(account))),
                 transactions,
             };
         })
