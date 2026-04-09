@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,7 +26,7 @@ export default function RootLayout({ children }) {
           {/* header */}
           <Header />
           <main className="min-h-screen mt-40 mx-20">
-            {children}
+            <TooltipProvider>{children}</TooltipProvider>
           </main>
           <Toaster richColors></Toaster>
           {/* footer */}
