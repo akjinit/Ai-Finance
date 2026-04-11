@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import {
     Table,
     TableBody,
@@ -33,7 +33,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { format } from 'date-fns'
 import { categoryColors } from '@/data/categories'
 import { Badge } from '@/components/ui/badge'
-import { Clock, MoreHorizontal, RefreshCcw, RefreshCcwDot } from 'lucide-react'
+import { ChevronDown, ChevronUp, Clock, MoreHorizontal, RefreshCcw, RefreshCcwDot } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const recurringIntervals = {
     DAILY: "Daily",
@@ -43,11 +44,36 @@ const recurringIntervals = {
 }
 
 const TransactionsTable = ({ transactions }) => {
-    console.log(transactions);
-    const filteredAndSortedTransactions = transactions;
-    const handleSort = () => {
+    const router = useRouter();
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [sortConfig, setSortConfig] = useState({
+        field: "date",
+        direction: "desc"
+    });
 
+
+    const handleSort = (field) => {
+        setSortConfig((current) => ({
+            field,
+            direction:
+                (current.field === field && current.direction === "asc" ? "desc" : "asc")
+        }))
     }
+
+
+    const handleSelect = (id) => {
+        setSelectedIds((current) => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
+    }
+
+    const handleSelectAll = () => {
+        if (selectedIds.length === transactions.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(transactions.map(t => t._id));
+        }
+    }
+    const filteredAndSortedTransactions = transactions;
+
     return (
         <div>
             {/* Filters */}
@@ -58,7 +84,7 @@ const TransactionsTable = ({ transactions }) => {
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-[50px]">
-                            <Checkbox />
+                            <Checkbox onCheckedChange={handleSelectAll} checked={selectedIds.length === transactions.length} />
                         </TableHead>
 
                         <TableHead className="cursor-pointer" onClick={
@@ -66,6 +92,13 @@ const TransactionsTable = ({ transactions }) => {
                         }>
                             <div className='flex items-center '>
                                 Date
+                                {sortConfig.field === "date" && (
+                                    sortConfig.direction === "asc" ? (
+                                        <ChevronUp className='h-3 w-3 ml-1'></ChevronUp>
+                                    ) : (
+                                        <ChevronDown className='h-3 w-3 ml-1'></ChevronDown>
+                                    )
+                                )}
                             </div>
                         </TableHead>
 
@@ -73,6 +106,13 @@ const TransactionsTable = ({ transactions }) => {
                         <TableHead className="cursor-pointer">
                             <div className='flex items-center '>
                                 Category
+                                {sortConfig.field === "category" && (
+                                    sortConfig.direction === "asc" ? (
+                                        <ChevronUp className='h-3 w-3 ml-1'></ChevronUp>
+                                    ) : (
+                                        <ChevronDown className='h-3 w-3 ml-1'></ChevronDown>
+                                    )
+                                )}
                             </div>
                         </TableHead>
 
@@ -81,6 +121,13 @@ const TransactionsTable = ({ transactions }) => {
                         }>
                             <div className='flex items-center justify-end'>
                                 Amount
+                                {sortConfig.field === "amount" && (
+                                    sortConfig.direction === "asc" ? (
+                                        <ChevronUp className='h-3 w-3 ml-1'></ChevronUp>
+                                    ) : (
+                                        <ChevronDown className='h-3 w-3 ml-1'></ChevronDown>
+                                    )
+                                )}
                             </div>
                         </TableHead>
 
@@ -100,7 +147,7 @@ const TransactionsTable = ({ transactions }) => {
                         </TableRow>
                     ) : (filteredAndSortedTransactions.map((transaction) => (
                         <TableRow key={transaction._id}>
-                            <TableCell className="font-medium"> <Checkbox /></TableCell>
+                            <TableCell className="font-medium"> <Checkbox onCheckedChange={() => handleSelect(transaction._id)} checked={selectedIds.includes(transaction._id)} /></TableCell>
                             <TableCell>{format(new Date(transaction.date), "PP")}</TableCell>
                             <TableCell>{transaction.description}</TableCell>
                             <TableCell >
@@ -142,14 +189,24 @@ const TransactionsTable = ({ transactions }) => {
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost">
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
                                             <MoreHorizontal className='h-4 w-4' />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
                                         <DropdownMenuGroup>
-                                            <DropdownMenuLabel>Edit</DropdownMenuLabel>
-                                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => {
+                                                router.push(`/accounts/transactions/${transaction._id}`)
+                                            }}>
+                                                Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className="text-destructive"
+                                            // onClick={() => {
+                                            //     deleteFn(transaction._id);
+                                            // }}
+                                            >
+                                                Delete
+                                            </DropdownMenuItem>
                                         </DropdownMenuGroup>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
