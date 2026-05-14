@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
     Table,
     TableBody,
@@ -46,6 +46,10 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronDown, ChevronUp, Clock, MoreHorizontal, RefreshCcw, RefreshCcwDot, Search, Trash, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
+import useFetch from '@/app/hooks/use-fetch'
+import { bulkDeleteTransactions } from '@/actions/accounts'
+import { toast } from 'sonner'
+import { BarLoader } from 'react-spinners'
 
 const recurringIntervals = {
     DAILY: "Daily",
@@ -62,11 +66,31 @@ const TransactionsTable = ({ transactions }) => {
         direction: "desc"
     });
 
+
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
     const [recurringFilter, setRecurringFilter] = useState('');
 
+    const {
+        loading: deleteLoading,
+        fn: deleteFn,
+        data: deleted
+    } = useFetch(bulkDeleteTransactions);
 
+    const handleBulkDelete = async () => {
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} transactions?`)) {
+            return;
+        }
+
+        deleteFn(selectedIds);
+        handleClearFilter();
+    }
+
+    useEffect(() => {
+        if (deleted && !deleteLoading) {
+            toast.error("Transactions deleted successfully");
+        }
+    }, [deleted, deleteLoading])
 
     const handleSort = (field) => {
         setSortConfig((current) => ({
@@ -89,9 +113,7 @@ const TransactionsTable = ({ transactions }) => {
         }
     }
 
-    const handleBulkDelete = () => {
-        console.log('delte');
-    }
+
     const handleClearFilter = () => {
         setSearchTerm('');
         setRecurringFilter('');
@@ -155,6 +177,7 @@ const TransactionsTable = ({ transactions }) => {
     return (
         <div>
             {/* Filters */}
+            {deleteLoading && (<BarLoader className='mt-4' width={"100%"}></BarLoader>)}
 
             <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='relative flex-1'>
@@ -338,9 +361,9 @@ const TransactionsTable = ({ transactions }) => {
                                                 Edit
                                             </DropdownMenuItem>
                                             <DropdownMenuItem className="text-destructive"
-                                            // onClick={() => {
-                                            //     deleteFn(transaction._id);
-                                            // }}
+                                            onClick={() => {
+                                                deleteFn(transaction._id);
+                                            }}
                                             >
                                                 Delete
                                             </DropdownMenuItem>
