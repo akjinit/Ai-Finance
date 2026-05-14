@@ -67,6 +67,7 @@ const TransactionsTable = ({ transactions }) => {
     const [recurringFilter, setRecurringFilter] = useState('');
 
 
+
     const handleSort = (field) => {
         setSortConfig((current) => ({
             field,
@@ -98,7 +99,58 @@ const TransactionsTable = ({ transactions }) => {
         setTypeFilter('');
     }
 
-    const filteredAndSortedTransactions = transactions;
+    const filteredAndSortedTransactions = useMemo(() => {
+        let result = [...transactions]
+
+
+        //applying the search filter
+        if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            result = result.filter((transaction) => {
+                return transaction.description?.toLowerCase().includes(searchLower)
+            })
+        }
+
+
+        //recurring filter
+        if (recurringFilter) {
+            result = result.filter((transaction) => {
+                if (recurringFilter === "recurring") return transaction.isRecurring
+                return !transaction.isRecurring
+            })
+        }
+
+        //apply type filter
+        if (typeFilter) {
+            result = result.filter((transaction) => {
+                return transaction.type === typeFilter
+            })
+        }
+
+        "sefw".localCompare
+        result.sort((a, b) => {
+            let comparision = 0;
+
+            switch (sortConfig.field) {
+                case "date":
+                    comparision = new Date(a.date) - new Date(b.date)
+                    break
+                case "amount":
+                    comparision = a.amount - b.amount
+                    break
+
+                case "category":
+                    comparision = a.category.localCompare(b.category)
+                    break
+                default:
+                    break
+            }
+
+            return sortConfig.direction === "asc" ? comparision : -comparision;
+        })
+
+        return result
+    }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig])
 
     return (
         <div>
