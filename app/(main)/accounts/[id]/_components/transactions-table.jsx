@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
     Table,
     TableBody,
@@ -70,6 +70,8 @@ const TransactionsTable = ({ transactions }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
     const [recurringFilter, setRecurringFilter] = useState('');
+    const [page, setPage] = useState(1);
+
 
     const {
         loading: deleteLoading,
@@ -83,12 +85,12 @@ const TransactionsTable = ({ transactions }) => {
         }
 
         deleteFn(selectedIds);
-        handleClearFilter();
     }
 
     useEffect(() => {
         if (deleted && !deleteLoading) {
             toast.error("Transactions deleted successfully");
+            handleClearFilter();
         }
     }, [deleted, deleteLoading])
 
@@ -173,6 +175,12 @@ const TransactionsTable = ({ transactions }) => {
 
         return result
     }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig])
+
+    // pagination
+    const lastPage = Math.max(1, Math.ceil(filteredAndSortedTransactions.length / 15));
+
+  
+
 
     return (
         <div>
@@ -305,7 +313,7 @@ const TransactionsTable = ({ transactions }) => {
                                 No transactions found.
                             </TableCell>
                         </TableRow>
-                    ) : (filteredAndSortedTransactions.map((transaction) => (
+                    ) : (filteredAndSortedTransactions.slice((page - 1) * 15, page * 15).map((transaction) => (
                         <TableRow key={transaction._id}>
                             <TableCell className="font-medium"> <Checkbox onCheckedChange={() => handleSelect(transaction._id)} checked={selectedIds.includes(transaction._id)} /></TableCell>
                             <TableCell>{format(new Date(transaction.date), "PP")}</TableCell>
@@ -361,9 +369,9 @@ const TransactionsTable = ({ transactions }) => {
                                                 Edit
                                             </DropdownMenuItem>
                                             <DropdownMenuItem className="text-destructive"
-                                            onClick={() => {
-                                                deleteFn(transaction._id);
-                                            }}
+                                                onClick={() => {
+                                                    deleteFn(transaction._id);
+                                                }}
                                             >
                                                 Delete
                                             </DropdownMenuItem>
@@ -377,6 +385,18 @@ const TransactionsTable = ({ transactions }) => {
 
                 </TableBody>
             </Table>
+            {/* Pagination controls */}
+            {filteredAndSortedTransactions.length > 0 && (
+                <div className='w-full mb-10 flex '>
+                    <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-2">
+                            <Button size='sm' disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
+                            <div>Page {page} / {lastPage}</div>
+                            <Button size='sm' disabled={page >= lastPage} onClick={() => setPage((p) => Math.min(lastPage, p + 1))}>Next</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     )
 }
