@@ -108,7 +108,7 @@ export async function updateBudget(amount) {
         revalidatePath("/dashboard");
         return {
             success: true,
-            ...budget
+            budget: amount,
         }
     }
     catch (error) {
