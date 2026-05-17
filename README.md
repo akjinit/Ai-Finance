@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Ai-Finance
 
-## Getting Started
+A personal finance dashboard built with Next.js. This app helps users track accounts, budgets, and transactions in a clean, responsive interface.
 
-First, run the development server:
+## Features
+
+- User authentication and secure sign-in / sign-up flows
+- Dashboard with budget progress, account overviews, and expense summaries
+- Account detail pages with transaction history and charts
+- Transaction creation and category selection
+- Seed data support via API route for local development
+
+## Tech Stack
+
+- Next.js 14+ with the App Router
+- React and client/server components
+- Custom UI components in `components/ui`
+- Local data and actions in `actions/`
+- Public assets in `public/`
+
+## Run Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` in your browser.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Screenshots
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Dashboard
 
-## Learn More
+![Dashboard](./public/screenshot-dashboard.png)
 
-To learn more about Next.js, take a look at the following resources:
+### Accounts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+![Accounts](./public/screenshot-accounts.png)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Transaction form
 
-## Deploy on Vercel
+![Transaction](./public/screenshot-transaction.png)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/` – main application routes and page layout
+- `components/` – reusable UI components and drawer/menu controls
+- `actions/` – server actions and data helpers
+- `lib/` – utility helpers and database access
+- `models/` – data models used by the app
+- `public/` – static assets and screenshots
+
+## Notes
+
+The screenshot files in `public/` were renamed to:
+
+- `screenshot-dashboard.png`
+- `screenshot-accounts.png`
+- `screenshot-transaction.png`
