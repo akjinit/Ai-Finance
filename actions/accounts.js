@@ -6,9 +6,11 @@ import { Transaction } from "@/models/Transaction";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import mongoose from "mongoose";
+import connectDB from "@/lib/db";
 
 export async function updateDefaultAccount(accountId) {
     try {
+        await connectDB();
         const { userId } = await auth();
         if (!userId) {
             throw new Error("Unauthorized");
@@ -39,6 +41,7 @@ export async function updateDefaultAccount(accountId) {
 
 export async function getAccountWithTransactions(accountId) {
     try {
+        await connectDB();
         const { userId } = await auth();
         if (!userId) {
             throw new Error("Unauthorized");
@@ -57,7 +60,7 @@ export async function getAccountWithTransactions(accountId) {
             userId: user.id,
         }).populate({
             path: "transactions",
-            options: { sort: { createdAt: -1 } }
+            options: { sort: { date: -1, createdAt: -1 } }
         });
 
 
@@ -76,6 +79,7 @@ export async function getAccountWithTransactions(accountId) {
 
 export async function bulkDeleteTransactions(transactionIds) {
 
+    await connectDB();
     const session = await mongoose.startSession();
 
     try {
@@ -157,7 +161,7 @@ export async function bulkDeleteTransactions(transactionIds) {
 
         session.endSession();
         revalidatePath("/dashboard");
-        revalidatePath("/account/[id]");
+        revalidatePath("/accounts/[id]");
 
     }
 }

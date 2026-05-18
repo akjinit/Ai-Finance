@@ -13,15 +13,15 @@ export default async function AccountsPage({ params }) {
     }
 
     return (
-        <div className='space-y-4 '>
-            <div className="flex flex-wrap gap-4 items-end justify-between">
-                <div>
-                    <h1 className='text-5xl sm:text-6xl font-bold gradient-title capitalize'>{account.name}</h1>
+        <div className='mx-auto w-full max-w-7xl space-y-5 sm:space-y-6'>
+            <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end sm:justify-between sm:p-6">
+                <div className="min-w-0">
+                    <h1 className='truncate text-3xl font-bold capitalize sm:text-5xl gradient-title'>{account.name}</h1>
                     <p className='text-lg text-muted-foreground first-letter:uppercase'>{account.type.toLowerCase()} Account</p>
                 </div>
 
                 <div>
-                    <div className="text-right pb-4">
+                    <div className="text-left sm:text-right">
 
                         <p className='text-xl sm:text-2xl font-bold'>${account.balance.toFixed(2)}</p>
 
@@ -36,14 +36,14 @@ export default async function AccountsPage({ params }) {
 
             </div>
             {/* chartsection */}
-            <Suspense fallback={<BarLoader color="#36d7b7" className='mt-4' width={"100%"} />}>
+            <Suspense fallback={<BarLoader color="#2563eb" className='mt-4' width={"100%"} />}>
                 <AccountChart transactions={account.transactions} className="w-full"></AccountChart>
             </Suspense>
 
 
             {/* TransactionTable */}
 
-            <Suspense fallback={<BarLoader color="#36d7b7" className='mt-4' width={"100%"} />}>
+            <Suspense fallback={<BarLoader color="#2563eb" className='mt-4' width={"100%"} />}>
                 <TransactionsTable transactions={account.transactions} className="w-full"></TransactionsTable>
             </Suspense>
         </div>

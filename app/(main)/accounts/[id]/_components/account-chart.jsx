@@ -3,15 +3,7 @@
 import { endOfDay, format, startOfDay, subDays } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 
 import {
@@ -90,11 +82,11 @@ const AccountChart = ({ transactions }) => {
     }, [filteredData]);
 
     return (
-        <Card>
-            <CardHeader className="flex items-center justify-between pb-7">
+        <Card className="bg-white shadow-sm">
+            <CardHeader className="flex flex-col gap-3 pb-5 sm:flex-row sm:items-center sm:justify-between">
                 <CardTitle>Transaction Overview</CardTitle>
                 <Select defaultValue={dateRange} onValueChange={setDateRange}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Select Range" />
                     </SelectTrigger>
                     <SelectContent>
@@ -111,22 +103,22 @@ const AccountChart = ({ transactions }) => {
                 </Select>
             </CardHeader>
             <CardContent>
-                <div className="flex justify-around mb-6 text-sm">
-                    <div>
+                <div className="mb-6 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+                    <div className="rounded-lg bg-emerald-50 p-3">
                         <p className="text-muted-foreground">Total Income</p>
                         <p className="text-lg font-bold text-green-500">
                             ${totals.income.toFixed(2)}
                         </p>
                     </div>
 
-                    <div>
+                    <div className="rounded-lg bg-red-50 p-3">
                         <p className="text-muted-foreground">Total Expense</p>
                         <p className="text-lg font-bold text-red-500">
                             ${totals.expense.toFixed(2)}
                         </p>
                     </div>
 
-                    <div>
+                    <div className="rounded-lg bg-slate-50 p-3">
                         <p className="text-muted-foreground">Net</p>
                         <p
                             className={`text-lg font-bold ${
@@ -140,11 +132,11 @@ const AccountChart = ({ transactions }) => {
                     </div>
                 </div>
 
-                <div className="h-[320px]">
+                <div className="h-[260px] sm:h-[320px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={filteredData}
-                            margin={{ top: 10, right: 16, left: 25, bottom: 10 }}
+                            margin={{ top: 10, right: 8, left: 0, bottom: 10 }}
                         >
                             <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
                             <XAxis dataKey="date" tick={{ fontSize: 12 }} />

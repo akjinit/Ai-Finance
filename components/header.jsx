@@ -9,30 +9,31 @@ import { checkUser } from '@/lib/checkUser'
 const Header = async () => {
     const user = await checkUser();
     return (
-        <div className="fixed top-0">
-            <nav className="flex items-center justify-between w-screen mx-auto px-20 py-3 ">
-                <Link href='/'>
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+            <nav className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+                <Link href='/' className="shrink-0">
                     <Image
                         src={"/wealth-logo.png"}
                         alt="wealth-logo"
                         height={20}
-                        width={200}
+                        width={170}
+                        className="h-auto w-32 sm:w-40"
                     />
                 </Link>
 
-                <div className='flex items-center gap-3 mr-4'>
+                <div className='flex min-w-0 items-center gap-2 sm:gap-3'>
                     <Show when="signed-in">
-                        <Link href="/dashboard" className='text-gray-600 hover:text-blue-600 items-center gap-2'>
-                            <Button variant='outline'>
+                        <Link href="/dashboard" className='text-slate-600 hover:text-slate-950'>
+                            <Button variant='outline' size="sm" className="gap-2">
                                 <LayoutDashboard size={18} />
-                                <span className='hidden md:inline'>Dashboard</span>
+                                <span className='hidden sm:inline'>Dashboard</span>
                             </Button>
                         </Link>
 
-                        <Link href="/transaction/create" className='text-gray-600  items-center gap-2'>
-                            <Button >
+                        <Link href="/transaction/create" className='text-slate-600'>
+                            <Button size="sm" className="gap-2">
                                 <PenBox size={18} />
-                                <span className='hidden md:inline'>Add Transaction</span>
+                                <span className='hidden sm:inline'>Add</span>
                             </Button>
                         </Link>
 
@@ -45,17 +46,17 @@ const Header = async () => {
 
                     <Show when="signed-out">
                         <SignInButton forceRedirectUrl={"/dashboard"}>
-                            <Button variant="outline">Login</Button>
+                            <Button variant="outline" size="sm">Login</Button>
                         </SignInButton >
 
                         <SignUpButton>
-
+                            <Button size="sm">Sign up</Button>
                         </SignUpButton>
                     </Show>
                 </div>
 
             </nav>
-        </div>
+        </header>
     )
 }
 

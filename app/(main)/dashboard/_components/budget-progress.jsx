@@ -32,7 +32,6 @@ const BudgetProgress = ({ budget, totalExpenses }) => {
     const {
         loading: isLoading,
         error,
-        data: updatedBudget,
         fn: updateBudgetFn
     } = useFetch(updateBudget);
 
@@ -42,15 +41,14 @@ const BudgetProgress = ({ budget, totalExpenses }) => {
             toast.error("Please enter a valid non-negative number for the budget.");
             return;
         } 
-        await updateBudgetFn(amount);
-    }
+        const result = await updateBudgetFn(amount);
 
-    useEffect(()=>{
-        if(updatedBudget?.success) {
+        if (result?.success) {
             toast.success("Budget updated successfully");
+            setNewBudget(result.budget);
             setIsEditing(false);
         }
-    },[updatedBudget]);
+    }
 
     useEffect(() => {
         if (error) {
@@ -59,14 +57,14 @@ const BudgetProgress = ({ budget, totalExpenses }) => {
     }, [error]);
 
     return (
-        <Card>
-            <CardHeader className="flex flex-col  justify-between space-y-2 pb-2">
-                <CardTitle>Monthly Budget (Default Account)</CardTitle>
+        <Card className="bg-white shadow-sm">
+            <CardHeader className="flex flex-col justify-between gap-3 pb-2 sm:flex-row sm:items-center">
+                <CardTitle>Monthly Budget</CardTitle>
                 <div >
                     {isEditing ? (
 
 
-                        <div className='flex gap-2 items-center '>
+                        <div className='flex flex-wrap items-center gap-2'>
                             <Input type="number" className={"w-32"} placeholder="Enter amount" autoFocus value={newBudget} disabled={isLoading} onChange={(e) => setNewBudget(parseFloat(e.target.value))} />
                             <Button onClick={handleUpdateBudget} disabled={isLoading}>
                                 <Check className='h-4 w-4 text-green-500' />
@@ -79,9 +77,9 @@ const BudgetProgress = ({ budget, totalExpenses }) => {
 
                     ) : (
 
-                        <div className='flex gap-2 items-center '>
+                        <div className='flex flex-wrap items-center gap-2'>
                             <CardDescription>{budget > 0 ? `Budget: $${budget.toFixed(2)} of $${totalExpenses.toFixed(2)} spent` : 'No budget set'}</CardDescription>
-                            <Button onClick={() => setIsEditing(true)} disabled={isLoading}>
+                            <Button size="icon" variant="outline" onClick={() => setIsEditing(true)} disabled={isLoading}>
                                 <Pencil className='h-3 w-3' />
                             </Button>
                         </div>

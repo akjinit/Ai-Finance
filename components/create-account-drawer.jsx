@@ -4,7 +4,6 @@ import {
     DrawerClose,
     DrawerContent,
     DrawerDescription,
-    DrawerFooter,
     DrawerHeader,
     DrawerTitle,
     DrawerTrigger,
@@ -26,7 +25,7 @@ import { Input } from "./ui/input";
 import { Switch } from "./ui/switch";
 import useFetch from "@/app/hooks/use-fetch";
 import { createAccount } from "@/actions/dashboard";
-import { Loader, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const CreateAccountDrawer = ({ children }) => {
@@ -43,7 +42,6 @@ const CreateAccountDrawer = ({ children }) => {
     })
     const {
         data: newAccount,
-        error,
         fn: createAccountFunction,
         loading: createAccountLoading
     } = useFetch(createAccount)
@@ -53,24 +51,22 @@ const CreateAccountDrawer = ({ children }) => {
             toast.success("Account created successfully")
             reset();
             setOpen(false);
-            console.log(newAccount);
         }
     }, [newAccount])
     const onSubmit = async (data) => {
-        console.log(data);
         await createAccountFunction(data);
     }
 
     return (
         <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerTrigger>{children}</DrawerTrigger>
-            <DrawerContent>
+            <DrawerTrigger asChild>{children}</DrawerTrigger>
+            <DrawerContent className="mx-auto max-w-xl">
                 <DrawerHeader>
-                    <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-                    <DrawerDescription>This action cannot be undone.</DrawerDescription>
+                    <DrawerTitle>Create Account</DrawerTitle>
+                    <DrawerDescription>Add a place to track your balance and transactions.</DrawerDescription>
                 </DrawerHeader>
                 <div className="px-4 pb-4">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="space-y-2">
                             <label htmlFor="name" className="text-sm font-medium">Account Name</label>
                             <Input
@@ -88,7 +84,7 @@ const CreateAccountDrawer = ({ children }) => {
                             <Select onValueChange={(value) => setValue('type', value)}
                                 defaultValue={watch('type')}>
 
-                                <SelectTrigger id="type" className="w-[180px]">
+                                <SelectTrigger id="type" className="w-full">
                                     <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -117,16 +113,18 @@ const CreateAccountDrawer = ({ children }) => {
                             )}
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="balance" className="text-sm font-medium">Set as default</label>
-                            <p>This account will be selected by defalult for transactions</p>
+                        <div className="flex items-center justify-between gap-4 rounded-lg border bg-slate-50 p-4">
+                            <div>
+                            <label htmlFor="isDefault" className="text-sm font-medium">Set as default</label>
+                            <p className="text-sm text-muted-foreground">This account will be selected by default for transactions.</p>
+                            </div>
                             <Switch id="isDefault"
                                 onCheckedChange={(checked) => { setValue('isDefault', checked) }}
                                 checked={watch('isDefault')}
                             />
                         </div>
 
-                        <div className="flex gap-4 pt-4">
+                        <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
                             <DrawerClose asChild className={'flex-1'}>
                                 <Button variant="outline">Cancel</Button>
                             </DrawerClose>

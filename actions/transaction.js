@@ -11,6 +11,24 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+function parseReceiptResponse(text) {
+    const cleanedText = text
+        .replace(/```(?:json)?/gi, "")
+        .replace(/```/g, "")
+        .trim();
+
+    try {
+        return JSON.parse(cleanedText);
+    } catch {
+        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            throw new Error("Gemini did not return a JSON object");
+        }
+
+        return JSON.parse(jsonMatch[0]);
+    }
+}
+
 function calculateNextRecurringDate(startDate, interval) {
     const date = new Date(startDate);
 
@@ -164,7 +182,47 @@ export async function updateTransaction(id, data) {
 
         const netBalanceChange = newBalanceChange - oldBalanceChange;
 
-        // Update transaction
+        const oldAccountId = originalTransaction.accountId.toString();
+        const newAccountId = data.accountId.toString();
+
+        if (oldAccountId !== newAccountId) {
+            const oldAccountChange =
+                originalTransaction.type === "EXPENSE"
+                    ? originalTransaction.amount
+                    : -originalTransaction.amount;
+
+            await Account.updateOne(
+                { _id: oldAccountId, userId: user.id },
+                {
+                    $inc: { balance: oldAccountChange },
+                    $pull: { transactions: originalTransaction._id },
+                },
+                { session }
+            );
+
+            const newAccount = await Account.findOne({
+                _id: newAccountId,
+                userId: user.id,
+            }).session(session);
+
+            if (!newAccount) throw new Error("Account not found");
+
+            const newAccountChange =
+                data.type === "EXPENSE" ? -data.amount : data.amount;
+            newAccount.balance += newAccountChange;
+            newAccount.transactions.addToSet(originalTransaction._id);
+            await newAccount.save({ session });
+        } else {
+            const account = await Account.findOne({
+                _id: data.accountId,
+                userId: user.id,
+            }).session(session);
+            if (!account) throw new Error("Account not found");
+
+            account.balance += netBalanceChange;
+            await account.save({ session });
+        }
+
         const updatedTransaction = await Transaction.findOneAndUpdate(
             { _id: id, userId: user.id },
             {
@@ -177,16 +235,10 @@ export async function updateTransaction(id, data) {
             { new: true, session }
         );
 
-        // Update account balance
-        const account = await Account.findOne({ _id: data.accountId }).session(session);
-        if (!account) throw new Error("Account not found");
-        
-        account.balance += netBalanceChange;
-        await account.save({ session });
-
         await session.commitTransaction();
 
         revalidatePath("/dashboard");
+        revalidatePath(`/accounts/${originalTransaction.accountId}`);
         revalidatePath(`/accounts/${data.accountId}`);
 
         return { success: true, data: JSON.parse(JSON.stringify(updatedTransaction)) };
@@ -211,7 +263,6 @@ export async function getUserTransactions(query = {}) {
             userId: user.id,
             ...query,
         })
-        .populate("accountId")
         .sort({ date: -1 });
 
         return { success: true, data: JSON.parse(JSON.stringify(transactions)) };
@@ -222,11 +273,20 @@ export async function getUserTransactions(query = {}) {
 
 export async function scanReceipt(file) {
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY is not configured");
+        }
+
+        const model = genAI.getGenerativeModel({
+            model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+            generationConfig: {
+                responseMimeType: "application/json",
+            },
+        });
         const arrayBuffer = await file.arrayBuffer();
         const base64String = Buffer.from(arrayBuffer).toString("base64");
 
-        const prompt = \`
+        const prompt = `
           Analyze this receipt image and extract the following information in JSON format:
           - Total amount (just the number)
           - Date (in ISO format)
@@ -234,7 +294,8 @@ export async function scanReceipt(file) {
           - Merchant/store name
           - Suggested category (one of: housing,transportation,groceries,utilities,entertainment,food,shopping,healthcare,education,personal,travel,insurance,gifts,bills,other-expense )
           
-          Only respond with valid JSON in this exact format:
+          Only respond with valid JSON. Do not include markdown, code fences, or explanatory text.
+          Use this exact format:
           {
             "amount": number,
             "date": "ISO date string",
@@ -243,8 +304,8 @@ export async function scanReceipt(file) {
             "category": "string"
           }
 
-          If its not a recipt, return an empty object
-        \`;
+          If it is not a receipt, return {}
+        `;
 
         const result = await model.generateContent([
             {
@@ -258,16 +319,27 @@ export async function scanReceipt(file) {
 
         const response = await result.response;
         const text = response.text();
-        const cleanedText = text.replace(/\`\`\`(?:json)?\\n?/g, "").trim();
 
         try {
-            const data = JSON.parse(cleanedText);
+            const data = parseReceiptResponse(text);
+
+            if (!data || Object.keys(data).length === 0) {
+                throw new Error("No receipt data found");
+            }
+
+            const amount = parseFloat(data.amount);
+            const date = data.date ? new Date(data.date) : new Date();
+
+            if (Number.isNaN(amount)) {
+                throw new Error("Receipt amount was missing or invalid");
+            }
+
             return {
-                amount: parseFloat(data.amount),
-                date: new Date(data.date),
-                description: data.description,
-                category: data.category,
-                merchantName: data.merchantName,
+                amount,
+                date: Number.isNaN(date.getTime()) ? new Date() : date,
+                description: data.description || data.merchantName || "",
+                category: data.category || "other-expense",
+                merchantName: data.merchantName || "",
             };
         } catch (parseError) {
             console.error("Error parsing JSON response:", parseError);

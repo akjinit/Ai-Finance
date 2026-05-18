@@ -5,10 +5,12 @@ import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server"
 import { revalidatePath } from "next/cache";
-import { success } from "zod";
+import connectDB from "@/lib/db";
+import mongoose from "mongoose";
 
 export async function getCurrentBudget(accountId) {
     try {
+        await connectDB();
         const { userId } = await auth();
         if (!userId) throw new Error("Unauthorised");
 
@@ -42,7 +44,7 @@ export async function getCurrentBudget(accountId) {
             {
                 $match: {
                     userId: user._id,
-                    accountId: accountId,
+                    accountId: new mongoose.Types.ObjectId(accountId),
                     type: "EXPENSE",
                     date: {
                         $gte: startOfMonth,
@@ -78,6 +80,7 @@ export async function getCurrentBudget(accountId) {
 
 export async function updateBudget(amount) {
     try {
+        await connectDB();
         const { userId } = await auth();
         if (!userId) throw new Error("Unauthorised");
         const user = await User.findOne({

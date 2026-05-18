@@ -5,9 +5,11 @@ import { Account } from "@/models/Account";
 import { User } from "@/models/User";
 import { revalidatePath } from "next/cache";
 import { Transaction } from "@/models/Transaction";
+import connectDB from "@/lib/db";
 
 export async function createAccount(data) {
     try {
+        await connectDB();
         const { userId } = await auth();
 
         if (!userId) {
@@ -63,6 +65,7 @@ export async function createAccount(data) {
 
 
 export async function getUserAccounts() {
+    await connectDB();
     const { userId } = await auth();
     if (!userId) {
         throw new Error("Unauthorized");

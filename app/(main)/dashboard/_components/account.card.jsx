@@ -49,15 +49,15 @@ const AccountCard = ({ account }) => {
 
     const { name, balance, type, _id, isDefault } = account;
     return (
-        <Card className={"hover:shadow-md transition-shadow"}>
+        <Card className={"bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle>{name}</CardTitle>
+                <CardTitle className="truncate pr-3">{name}</CardTitle>
                 <Switch checked={isDefault} onClick={handleDefaultAccountChange} disabled={updateDefaultAccountLoading} />
             </CardHeader>
             <Link href={`/accounts/${_id}`} className='' >
 
                 <CardContent className="pb-4">
-                    <p className='text-2xl font-bold'>${balance.toFixed(2)}</p>
+                    <p className='text-2xl font-bold text-slate-950'>${balance.toFixed(2)}</p>
                     <p className='text-xs text-muted-foreground capitalize'> {type.toLowerCase()} Account </p>
                 </CardContent>
                 <CardFooter className="flex justify-between text-sm text-muted-foreground">

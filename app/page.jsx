@@ -13,20 +13,20 @@ import Link from "next/link";
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen mt-40 bg-white">
+    <div className="mx-auto -mt-4 w-full max-w-7xl">
       {/* Hero Section */}
       <HeroSection />
 
       {/* Stats Section */}
-      <section className="py-20 bg-blue-50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="rounded-2xl border border-slate-200 bg-white py-8 shadow-sm sm:py-10">
+        <div className="px-4 sm:px-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-8">
             {statsData.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">
+                <div className="mb-1 text-2xl font-bold text-blue-700 sm:text-4xl">
                   {stat.value}
                 </div>
-                <div className="text-gray-600">{stat.label}</div>
+                <div className="text-sm text-slate-500 sm:text-base">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -34,18 +34,18 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
+      <section id="features" className="py-14 sm:py-20">
+        <div>
+          <h2 className="mb-8 text-center text-2xl font-bold text-slate-950 sm:mb-12 sm:text-3xl">
             Everything you need to manage your finances
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {featuresData.map((feature, index) => (
-              <Card className="p-6" key={index}>
-                <CardContent className="space-y-4 pt-4">
+              <Card className="border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" key={index}>
+                <CardContent className="space-y-4 pt-2">
                   {feature.icon}
                   <h3 className="text-xl font-semibold">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <p className="text-slate-500">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -54,17 +54,17 @@ const LandingPage = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-blue-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <section className="rounded-2xl border border-slate-200 bg-slate-900 py-14 text-white shadow-sm sm:py-20">
+        <div className="px-4 sm:px-6">
+          <h2 className="mb-10 text-center text-2xl font-bold sm:mb-14 sm:text-3xl">How It Works</h2>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {howItWorksData.map((step, index) => (
               <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-cyan-200">
                   {step.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-4">{step.title}</h3>
-                <p className="text-gray-600">{step.description}</p>
+                <p className="text-sm leading-6 text-slate-300">{step.description}</p>
               </div>
             ))}
           </div>
@@ -72,14 +72,14 @@ const LandingPage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">
+      <section id="testimonials" className="py-14 sm:py-20">
+        <div>
+          <h2 className="mb-10 text-center text-2xl font-bold sm:mb-14 sm:text-3xl">
             What Our Users Say
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {testimonialsData.map((testimonial, index) => (
-              <Card key={index} className="p-6">
+              <Card key={index} className="bg-white shadow-sm">
                 <CardContent className="pt-4">
                   <div className="flex items-center mb-4">
                     <Image
@@ -91,12 +91,12 @@ const LandingPage = () => {
                     />
                     <div className="ml-4">
                       <div className="font-semibold">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-slate-500">
                         {testimonial.role}
                       </div>
                     </div>
                   </div>
-                  <p className="text-gray-600">{testimonial.quote}</p>
+                  <p className="text-slate-500">{testimonial.quote}</p>
                 </CardContent>
               </Card>
             ))}
@@ -105,9 +105,9 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
+      <section className="mb-4 rounded-2xl bg-blue-700 py-14 sm:py-16">
+        <div className="px-4 text-center">
+          <h2 className="mb-4 text-2xl font-bold text-white sm:text-3xl">
             Ready to Take Control of Your Finances?
           </h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
@@ -117,7 +117,7 @@ const LandingPage = () => {
           <Link href="/dashboard">
             <Button
               size="lg"
-              className="bg-white text-blue-600 hover:bg-blue-50 animate-bounce"
+              className="bg-white text-blue-700 hover:bg-blue-50"
             >
               Start Free Trial
             </Button>

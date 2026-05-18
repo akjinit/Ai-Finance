@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Loader2 } from "lucide-react";
@@ -95,7 +95,7 @@ export default function AddTransactionForm({
     }
   };
 
-  const handleScanComplete = (scannedData) => {
+  const handleScanComplete = useCallback((scannedData) => {
     if (scannedData) {
       setValue("amount", scannedData.amount.toString());
       setValue("date", new Date(scannedData.date));
@@ -107,7 +107,7 @@ export default function AddTransactionForm({
       }
       toast.success("Receipt scanned successfully");
     }
-  };
+  }, [setValue]);
 
   useEffect(() => {
     if (transactionResult?.success && !transactionLoading) {
@@ -117,7 +117,7 @@ export default function AddTransactionForm({
           : "Transaction created successfully"
       );
       reset();
-      router.push(\`/accounts/\${transactionResult.transaction ? transactionResult.transaction.accountId : transactionResult.data.accountId}\`);
+      router.push(`/accounts/${transactionResult.transaction ? transactionResult.transaction.accountId : transactionResult.data.accountId}`);
     }
   }, [transactionResult, transactionLoading, editMode, router, reset]);
 
@@ -130,7 +130,7 @@ export default function AddTransactionForm({
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
       {/* Receipt Scanner - Only show in create mode */}
       {!editMode && <ReceiptScanner onScanComplete={handleScanComplete} />}
 
@@ -157,7 +157,7 @@ export default function AddTransactionForm({
       </div>
 
       {/* Amount and Account */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
         <div className="space-y-2">
           <label className="text-sm font-medium">Amount</label>
           <Input
@@ -184,7 +184,7 @@ export default function AddTransactionForm({
                 <SelectGroup>
               {accounts.map((account) => (
                 <SelectItem key={account._id} value={account._id}>
-                  {account.name} (\${parseFloat(account.balance).toFixed(2)})
+                  {account.name} (${parseFloat(account.balance).toFixed(2)})
                 </SelectItem>
               ))}
               </SelectGroup>
@@ -272,8 +272,8 @@ export default function AddTransactionForm({
       </div>
 
       {/* Recurring Toggle */}
-      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-        <div className="space-y-0.5">
+      <div className="flex flex-col gap-4 rounded-lg border bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-0.5 pr-2">
           <label className="text-base font-medium">Recurring Transaction</label>
           <div className="text-sm text-muted-foreground">
             Set up a recurring schedule for this transaction
@@ -314,7 +314,7 @@ export default function AddTransactionForm({
       )}
 
       {/* Actions */}
-      <div className="flex gap-4">
+      <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
         <Button
           type="button"
           variant="outline"

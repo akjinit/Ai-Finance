@@ -22,20 +22,15 @@ export default function RootLayout({ children }) {
       <html
         lang="en" className=""
       >
-        <body className={`${inter.className} bg-white`}>
-          {/* header */}
+        <body className={`${inter.className} min-h-screen bg-slate-50 text-slate-950 antialiased`}>
           <Header />
-          <main className="min-h-screen mt-40 mx-20">
+          <main className="min-h-screen px-4 pb-12 pt-24 sm:px-6 lg:px-8">
             <TooltipProvider>{children}</TooltipProvider>
           </main>
           <Toaster richColors></Toaster>
-          {/* footer */}
-          <footer className="bg-blue-50 py-12">
-            <div className="container mx-auto px-4 text-center 
-          text-gray-600">
-              <p>
-                Footer for the app
-              </p>
+          <footer className="border-t border-slate-200 bg-white py-8">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
+              <p>Wealth. Personal finance with a little more signal.</p>
             </div>
           </footer>
         </body>

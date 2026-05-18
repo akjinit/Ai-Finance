@@ -1,16 +1,368 @@
-// src/inngest/functions.ts
 import { inngest } from "./client";
+import { User } from "@/models/User";
+import { Account } from "@/models/Account";
+import { Transaction } from "@/models/Transaction";
+import { Budget } from "@/models/Budget";
+import EmailTemplate from "@/emails/template";
+import { sendEmail } from "@/actions/send-email";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import connectDB from "@/lib/db";
+import mongoose from "mongoose";
 
-export const processTask = inngest.createFunction(
-    { id: "process-task", triggers: { event: "app/task.created" } },
+// 1. Recurring Transaction Processing with Throttling
+export const processRecurringTransaction = inngest.createFunction(
+  {
+    id: "process-recurring-transaction",
+    name: "Process Recurring Transaction",
+    triggers: { event: "transaction.recurring.process" },
+    throttle: {
+      limit: 10, // Process 10 transactions
+      period: "1m", // per minute
+      key: "event.data.userId", // Throttle per user
+    },
+  },
+  async ({ event, step }) => {
+    // Validate event data
+    if (!event?.data?.transactionId || !event?.data?.userId) {
+      console.error("Invalid event data:", event);
+      return { error: "Missing required event data" };
+    }
 
-    async ({ event, step }) => {
-        const result = await step.run("handle-task", async () => {
-            return { processed: true, id: event.data.id };
+    await step.run("process-transaction", async () => {
+      await connectDB();
+      const transaction = await Transaction.findOne({
+        _id: event.data.transactionId,
+        userId: event.data.userId,
+      }).populate("accountId");
+
+      if (!transaction || !isTransactionDue(transaction)) return;
+
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      
+      try {
+        // Create new transaction
+        const newTransaction = await Transaction.create(
+          [{
+            type: transaction.type,
+            amount: transaction.amount,
+            description: `${transaction.description} (Recurring)`,
+            date: new Date(),
+            category: transaction.category,
+            userId: transaction.userId,
+            accountId: transaction.accountId._id,
+            isRecurring: false,
+          }],
+          { session }
+        );
+
+        // Update account balance
+        const balanceChange =
+          transaction.type === "EXPENSE"
+            ? -transaction.amount
+            : transaction.amount;
+
+        const account = await Account.findOne({ _id: transaction.accountId._id }).session(session);
+        account.balance += balanceChange;
+        account.transactions.push(newTransaction[0]._id);
+        await account.save({ session });
+
+        // Update last processed date and next recurring date
+        transaction.lastProcessed = new Date();
+        transaction.nextRecurringDate = calculateNextRecurringDate(
+          new Date(),
+          transaction.recurringInterval
+        );
+        await transaction.save({ session });
+
+        await session.commitTransaction();
+      } catch (err) {
+        await session.abortTransaction();
+        throw err;
+      } finally {
+        session.endSession();
+      }
+    });
+  }
+);
+
+// Trigger recurring transactions with batching
+export const triggerRecurringTransactions = inngest.createFunction(
+  {
+    id: "trigger-recurring-transactions", // Unique ID,
+    name: "Trigger Recurring Transactions",
+    triggers: { cron: "0 0 * * *" }, // Daily at midnight
+  },
+  async ({ step }) => {
+    const recurringTransactions = await step.run(
+      "fetch-recurring-transactions",
+      async () => {
+        await connectDB();
+        return await Transaction.find({
+          isRecurring: true,
+          status: "COMPLETED",
+          $or: [
+            { lastProcessed: null },
+            {
+              nextRecurringDate: {
+                $lte: new Date(),
+              },
+            },
+          ],
+        });
+      }
+    );
+
+    // Send event for each recurring transaction in batches
+    if (recurringTransactions.length > 0) {
+      const events = recurringTransactions.map((transaction) => ({
+        name: "transaction.recurring.process",
+        data: {
+          transactionId: transaction._id.toString(),
+          userId: transaction.userId.toString(),
+        },
+      }));
+
+      // Send events directly using inngest.send()
+      await inngest.send(events);
+    }
+
+    return { triggered: recurringTransactions.length };
+  }
+);
+
+// 2. Monthly Report Generation
+async function generateFinancialInsights(stats, month) {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+  });
+
+  const prompt = `
+    Analyze this financial data and provide 3 concise, actionable insights.
+    Focus on spending patterns and practical advice.
+    Keep it friendly and conversational.
+
+    Financial Data for ${month}:
+    - Total Income: $${stats.totalIncome}
+    - Total Expenses: $${stats.totalExpenses}
+    - Net Income: $${stats.totalIncome - stats.totalExpenses}
+    - Expense Categories: ${Object.entries(stats.byCategory)
+      .map(([category, amount]) => `${category}: $${amount}`)
+      .join(", ")}
+
+    Format the response as a JSON array of strings, like this:
+    ["insight 1", "insight 2", "insight 3"]
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    const cleanedText = text.replace(/\`\`\`(?:json)?\\n?/g, "").trim();
+
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error("Error generating insights:", error);
+    return [
+      "Your highest expense category this month might need attention.",
+      "Consider setting up a budget for better financial management.",
+      "Track your recurring expenses to identify potential savings.",
+    ];
+  }
+}
+
+export const generateMonthlyReports = inngest.createFunction(
+  {
+    id: "generate-monthly-reports",
+    name: "Generate Monthly Reports",
+    triggers: { cron: "0 0 1 * *" }, // First day of each month
+  },
+  async ({ step }) => {
+    const users = await step.run("fetch-users", async () => {
+      await connectDB();
+      return await User.find({});
+    });
+
+    for (const user of users) {
+      await step.run(`generate-report-${user._id}`, async () => {
+        await connectDB();
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+        const stats = await getMonthlyStats(user._id, lastMonth);
+        const monthName = lastMonth.toLocaleString("default", {
+          month: "long",
         });
 
-        await step.sleep("pause", "1s");
+        // Generate AI insights
+        const insights = await generateFinancialInsights(stats, monthName);
 
-        return { message: `Task ${event.data.id} complete`, result };
+        await sendEmail({
+          to: user.email,
+          subject: `Your Monthly Financial Report - ${monthName}`,
+          react: EmailTemplate({
+            userName: user.name,
+            type: "monthly-report",
+            data: {
+              stats,
+              month: monthName,
+              insights,
+            },
+          }),
+        });
+      });
     }
+
+    return { processed: users.length };
+  }
 );
+
+// 3. Budget Alerts with Event Batching
+export const checkBudgetAlerts = inngest.createFunction(
+  {
+    name: "Check Budget Alerts",
+    id: "check-budget-alerts",
+    triggers: { cron: "0 */6 * * *" }, // Every 6 hours
+  },
+  async ({ step }) => {
+    const budgets = await step.run("fetch-budgets", async () => {
+      await connectDB();
+      return await Budget.find({}).populate("userId");
+    });
+
+    for (const budget of budgets) {
+      const user = budget.userId;
+      if (!user) continue;
+
+      const defaultAccount = await Account.findOne({ userId: user._id, isDefault: true });
+      if (!defaultAccount) continue; // Skip if no default account
+
+      await step.run(`check-budget-${budget._id}`, async () => {
+        await connectDB();
+        const startDate = new Date();
+        startDate.setDate(1); // Start of current month
+
+        // Calculate total expenses for the default account only
+        const expenses = await Transaction.aggregate([
+          {
+            $match: {
+              userId: user._id,
+              accountId: defaultAccount._id,
+              type: "EXPENSE",
+              date: { $gte: startDate }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalAmount: { $sum: "$amount" }
+            }
+          }
+        ]);
+
+        const totalExpenses = expenses.length > 0 ? expenses[0].totalAmount : 0;
+        const budgetAmount = budget.amount;
+        const percentageUsed = (totalExpenses / budgetAmount) * 100;
+
+        // Check if we should send an alert
+        if (
+          percentageUsed >= 80 && // Default threshold of 80%
+          (!budget.lastAlertSent ||
+            isNewMonth(new Date(budget.lastAlertSent), new Date()))
+        ) {
+          await sendEmail({
+            to: user.email,
+            subject: `Budget Alert for ${defaultAccount.name}`,
+            react: EmailTemplate({
+              userName: user.name,
+              type: "budget-alert",
+              data: {
+                percentageUsed,
+                budgetAmount: parseInt(budgetAmount).toFixed(1),
+                totalExpenses: parseInt(totalExpenses).toFixed(1),
+                accountName: defaultAccount.name,
+              },
+            }),
+          });
+
+          // Update last alert sent
+          budget.lastAlertSent = new Date();
+          await budget.save();
+        }
+      });
+    }
+  }
+);
+
+function isNewMonth(lastAlertDate, currentDate) {
+  return (
+    lastAlertDate.getMonth() !== currentDate.getMonth() ||
+    lastAlertDate.getFullYear() !== currentDate.getFullYear()
+  );
+}
+
+// Utility functions
+function isTransactionDue(transaction) {
+  // If no lastProcessed date, transaction is due
+  if (!transaction.lastProcessed) return true;
+
+  const today = new Date();
+  const nextDue = new Date(transaction.nextRecurringDate);
+
+  // Compare with nextDue date
+  return nextDue <= today;
+}
+
+function calculateNextRecurringDate(date, interval) {
+  const next = new Date(date);
+  switch (interval) {
+    case "DAILY":
+      next.setDate(next.getDate() + 1);
+      break;
+    case "WEEKLY":
+      next.setDate(next.getDate() + 7);
+      break;
+    case "MONTHLY":
+      next.setMonth(next.getMonth() + 1);
+      break;
+    case "YEARLY":
+      next.setFullYear(next.getFullYear() + 1);
+      break;
+  }
+  return next;
+}
+
+async function getMonthlyStats(userId, month) {
+  await connectDB();
+  const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
+  const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+
+  const transactions = await Transaction.find({
+    userId,
+    date: {
+      $gte: startDate,
+      $lte: endDate,
+    },
+  });
+
+  return transactions.reduce(
+    (stats, t) => {
+      const amount = t.amount;
+      if (t.type === "EXPENSE") {
+        stats.totalExpenses += amount;
+        stats.byCategory[t.category] =
+          (stats.byCategory[t.category] || 0) + amount;
+      } else {
+        stats.totalIncome += amount;
+      }
+      return stats;
+    },
+    {
+      totalExpenses: 0,
+      totalIncome: 0,
+      byCategory: {},
+      transactionCount: transactions.length,
+    }
+  );
+}

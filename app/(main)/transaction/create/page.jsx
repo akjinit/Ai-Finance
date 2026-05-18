@@ -15,17 +15,23 @@ export default async function CreateTransactionPage({ searchParams }) {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-6">
-            <h1 className="text-5xl gradient-title mb-8">
+        <div className="mx-auto w-full max-w-3xl">
+            <div className="mb-6">
+            <h1 className="text-3xl sm:text-5xl gradient-title">
                 {editId ? "Edit Transaction" : "Add Transaction"}
             </h1>
-            {/* Form to create a transaction */}
+            <p className="mt-2 text-sm text-slate-500 sm:text-base">
+                Capture income, expenses, recurring payments, and receipt details.
+            </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
             <AddTransactionForm 
                 accounts={accounts}
                 categories={defaultCategories}
                 editMode={!!editId}
                 initialData={initialData}
             />
+            </div>
         </div>
     );
 }
