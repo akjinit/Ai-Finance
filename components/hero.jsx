@@ -39,19 +39,19 @@ const HeroSection = () => {
                 </p>
 
                 <div className='flex flex-col justify-center gap-3 sm:flex-row'>
-                    <Link href={"/dashboard"} className="w-full sm:w-auto">
-                        <Button size="lg" className={'w-full px-8 sm:w-auto'}>Get Started</Button>
+                    <Link href="/dashboard" className="w-full sm:w-auto">
+                        <Button size="lg" className={'w-full px-8 sm:w-auto rounded-xl shadow-lg'}>Get Started</Button>
                     </Link>
-                    <Link href={"/dashboard"} className="w-full sm:w-auto">
-                        <Button size='lg' variant='outline' className={'w-full px-8 sm:w-auto'}>Watch Demo</Button>
+                    <Link href="/dashboard" className="w-full sm:w-auto">
+                        <Button size='lg' variant='outline' className={'w-full px-8 sm:w-auto rounded-xl'}>Watch Demo</Button>
                     </Link>
                 </div>
 
             </div>
 
-            <div className='hero-image-wrapper mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:mt-10 sm:p-4'>
+            <div className='hero-image-wrapper mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-md sm:mt-10 sm:p-4'>
                 <div ref={imageRef} className='hero-image'>
-                    <Image priority alt="Dashboard preview" className='mx-auto rounded-xl shadow-xl' src="/wealth-banner.png" width={1280} height={400}></Image>
+                    <Image priority alt="Dashboard preview" className='mx-auto rounded-2xl shadow-2xl' src="/wealth-banner.png" width={1280} height={400} />
                 </div>
             </div>
         </section>

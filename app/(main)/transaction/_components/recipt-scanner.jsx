@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Camera, Loader2 } from "lucide-react";
+import { ImageUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import useFetch from "@/app/hooks/use-fetch";
@@ -39,7 +39,6 @@ export function ReceiptScanner({ onScanComplete }) {
         ref={fileInputRef}
         className="hidden"
         accept="image/*"
-        capture="environment"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleReceiptScan(file);
@@ -59,8 +58,8 @@ export function ReceiptScanner({ onScanComplete }) {
           </>
         ) : (
           <>
-            <Camera className="mr-2" />
-            <span>Scan Receipt with AI</span>
+            <ImageUp className="mr-2" />
+            <span>Upload Receipt from Gallery</span>
           </>
         )}
       </Button>

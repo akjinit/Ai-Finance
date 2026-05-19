@@ -9,8 +9,8 @@ import { checkUser } from '@/lib/checkUser'
 const Header = async () => {
     const user = await checkUser();
     return (
-        <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-            <nav className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm shadow-sm">
+            <nav className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
                 <Link href='/' className="shrink-0">
                     <Image
                         src={"/wealth-logo.png"}
